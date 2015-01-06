@@ -1,0 +1,21 @@
+{
+  "enMenu":["Play vs robot","Play vs player","Options","Game rules","Load game"],
+  "kzMenu":["Роботқа қарсы ойнау","Басқа адаммен ойнау","Параметрлер","Оыйн шарттары","Ойынды жүктеу"],
+  "mainMenu":["gameVsRobot","gameVsPlayer","options","rules","loadGame"],
+  "ruMenu":["Играть против робота","Играть против игрока","Настройки","Правила игры","Загрузить игру"],
+  "optionsMenu":["language","playerName","skin","menu"],
+  "enOptions":["Language","Player name","Skin","<- Go back"],
+  "ruOptions":["Язык","Имя игрока","Оформление","<- Вернуться"],
+  "kzOptions":["Тіл","Ойыншының аты","Тақтаның түсі","<- Артқа"],
+  "languageMenu":["kz","ru","en"],
+  "enLanguages":["Kazakh","Russian","English"],
+  "ruLanguages":["Казахский","Русский","Английский"],
+  "kzLanguages":["Қазақша","Орысша","Ағылшынша"],
+  "kzRules":"kzRules.txt",
+  "ruRules":"ruRules.txt",
+  "enRules":"enRules.txt",
+  "skinMenu":["wood","black","orange","tree"],
+  "kzSkins":["Қоңыр","Қара","Апельсин","Ағаш"],
+  "ruSkins":["Коричнывый","Черный","Оранжевый","Древесный"],
+  "enSkins":["Wood","Black","Orange","Tree"]
+}
