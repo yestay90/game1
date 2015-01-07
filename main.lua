@@ -24,6 +24,7 @@ local function loadUserData()
   	io.close( fileHandle )
   	-- load strings
 	fileHandle, errorString = io.open(stringsPath,"r")
+  
 	if fileHandle then
     	local contents = fileHandle:read( "*a" )
     	strings = loadsave.loadTable("strings.json")
@@ -49,7 +50,13 @@ local function loadUserData()
       "skinMenu":["wood","black","orange","tree"],
       "kzSkins":["Қоңыр","Қара","Апельсин","Ағаш"],
       "ruSkins":["Коричнывый","Черный","Оранжевый","Древесный"],
-      "enSkins":["Wood","Black","Orange","Tree"]
+      "enSkins":["Wood","Black","Orange","Tree"],
+      "kzPause":["Пауза","Параметрлер"],
+      "ruPause":["Пауза","Настройки"],
+      "enPause":["Pause","Options"],
+      "ruGameOver":["Игра окончена!", "игрок победил!","Нет хода!","Очков","Новый рекорд!"],
+      "kzGameOver":["Ойын аяқталды!", "-ойыншы ұтты!","Атсыз қалу!","Ұпай","Ең үлкен ұпай!"],
+      "enGameOver":["Game over!", "Player win","No more moves!","Points","Personal highscore!"]
     }]])
 	end
   io.close( fileHandle )

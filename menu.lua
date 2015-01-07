@@ -15,9 +15,15 @@ local strings = composer.getVariable( "strings" )
 
 local function menuItemTap (event)
 	if selectedMenuItem==event.target.id then
-    print(event.target.id)
-		composer.gotoScene( event.target.id )
-	else
+    --print(event.target.id)
+    if event.target.id == "loadGame" then
+      composer.setVariable("newGame",false)
+      composer.gotoScene("game")
+    else
+      composer.setVariable("newGame",true)
+		  composer.gotoScene( event.target.id )
+	  end
+  else
 		previousMenuItem:setFillColor( 1 )
 		selectedMenuItem = event.target.id
 		previousMenuItem = event.target

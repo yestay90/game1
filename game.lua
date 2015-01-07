@@ -5,13 +5,15 @@ local thisIsSceneGroup
 local json = require("json")
 local saveGameFilePath = system.pathForFile( "savedGame.json", system.DocumentsDirectory )
 
+local stoneSnd = audio.loadSound( "stone_group.wav") -- stone_single
+local soundPlaying = false 
+
 local gameSettings = composer.getVariable("gameSettings")
 local skin = gameSettings.skin
 local lunka = {}
 local LK = {}
 local p1turn = true
 local isNewGame = composer.getVariable("newGame")
-print("is new game is equal to "..tostring(isNewGame))
 local selectedLunka = 0
 
 local stoneSpeed = 300
@@ -29,6 +31,32 @@ local stones = {}
 local totalStones = {}
 local gameOver = false
 
+local function podsvetit(player)
+    -- 1 from 1 to 9
+    -- 2 from 10 to 18
+    local start = (player*9)-8
+    for i=start, start+8 do
+        lunka[i].alpha = 0.5
+    end
+end
+
+local function otsvetit(player)
+    -- 1 from 1 to 9
+    -- 2 from 10 to 18
+    local start = (player*9)-8
+    for i=start, start+8 do
+        lunka[i].alpha = 1
+    end
+end
+
+local function soundFinished(event)
+    
+    soundPlaying = true
+    if (event.completed) then
+        soundPlaying = false
+    end
+end
+
 local function saveState()
     -- body
     local contents
@@ -36,12 +64,12 @@ local function saveState()
     print("Saving game state")
     fileHandle = io.open( saveGameFilePath,"w" )
     for i =1,18 do
-        savedData[i]=counter[i]
+        savedData[i]=counter[i].text
     end
-    savedData.player1 = counter.player1
-    savedData.player2 = counter.player2
-    savedData.tuzdyk1 = counter.tuzdyk1
-    savedData.tuzdyk2 = counter.tuzdyk2
+    savedData.player1 = counter.player1.text
+    savedData.player2 = counter.player2.text
+    savedData.tuzdyk1 = tuzdyk1
+    savedData.tuzdyk2 = tuzdyk2
     savedData.p1turn = p1turn
     savedData.totalStones1 = totalStones[1]
     savedData.totalStones2 = totalStones[2]
@@ -58,7 +86,7 @@ end
 
 local function addScore( num, i )
     -- adds num (number)
-    print("Adding score "..num.." to "..i)
+    --print("Adding score "..num.." to "..i)
     local temp = 0
     if i==1 then
         temp = counter.player1.text
@@ -83,7 +111,17 @@ local function handleBackBtn(event)
     -- body
     if (event.phase == "ended") then
         saveState() -- saving game state for 9 kumalak
-        composer.gotoScene( "menu" )
+        local options =
+        {
+            isModal = true,
+            effect = "fade",
+            time = 400,
+            params = {
+                state = "pause"
+            }
+        }
+
+        composer.showOverlay("gameOver", options)
     end
 end
 
@@ -99,7 +137,7 @@ local function addKamni(lunkaId, num)
 end
 
 local function isEven(lunkaId)
-    print("Checking if "..counter[lunkaId].text .." is even")
+    --print("Checking if "..counter[lunkaId].text .." is even")
     local num = counter[lunkaId].text+0
     if num % 2 == 0 then
         return true
@@ -113,7 +151,11 @@ local function moveStone(stoneId,origin,dest)
     local ballX,ballY,ballPos,rowY,rowX
     local j = dest
     local params
-
+    local startingPlayer = 1
+    local subtract = false
+    if origin>9 then startingPlayer = 2 end
+    if dest>9 and startingPlayer==1 then subtract = true
+        elseif dest<10 and startingPlayer==2 then subtract = true end
     rowX = 0
     rowY = 0
 
@@ -173,7 +215,69 @@ local function moveStone(stoneId,origin,dest)
         table.remove(LK[origin])
         transition.to(stones[stoneId],params)
         table.insert(LK[dest],#LK[dest]+1,stoneId)
+        if subtract then 
+            totalStones[startingPlayer]=totalStones[startingPlayer]-1
+            totalStones[3-startingPlayer] = totalStones[3-startingPlayer]+1
+            --print("subtracting stone from player "..startingPlayer)
+        end
     end
+end
+
+local function moveStoneToKazan(tekStone,k)
+    --local currentStones = counter[].text
+    local currentKazan
+    local kazanX, kazanY, rowY, rowX, kazanPos
+    local stonesInKazan
+    local shifted = false
+    if k==1 then 
+        kazanX = display.contentCenterX - 30
+        currentKazan = 19
+        stonesInKazan = counter.player1.text
+    elseif k==2 then 
+        currentKazan = 20
+        kazanX = display.contentCenterX + 30
+        stonesInKazan = counter.player2.text
+    end
+    kazanY = 180
+    rowX = 0
+    shifted = false
+
+    rowY = #LK[currentKazan]+0
+    --print("rowY "..rowY)
+        if rowY>58 then
+            rowY = rowY - 58
+            if rowX==-15 then rowX = 15 end
+            if not shifted then
+                rowX = rowX + 15
+                shifted = true
+            end
+        elseif rowY>29 then
+            
+            rowY = rowY - 29
+            if not shifted then
+                rowX = rowX - 15
+                shifted = true
+            end
+        end
+        rowY = rowY * 30
+        if shifted then 
+            rowY = rowY - 15 
+        end
+        local params = {
+            time = stoneSpeed,
+            x = kazanX+rowX,
+            y = kazanY+rowY,
+            delay = delayToMoveToKazan
+        }
+
+        -- set stonePosition to the last id
+        --stonePosition = currentStones-i+1 -- last stone in group
+        --print("moving stone "..tekStone.." to kazan "..currentKazan.." to x "..params.x.." and y "..params.y)
+        transition.moveTo( stones[tekStone], params)
+        local pos = #LK[currentKazan]
+        if pos==nil then pos = 0 end
+        table.insert( LK[currentKazan], pos+1, tekStone ) 
+
 end
 
 local function moveToKazan(lunkaId,k)
@@ -186,7 +290,9 @@ local function moveToKazan(lunkaId,k)
     local kazanX, kazanY, rowY, rowX, kazanPos
     local stonesInKazan
     local shifted = false
+    local currentPlayer = 1
 
+    if lunkaId>9 then currentPlayer =2 end
 
     if k==1 then 
         kazanX = display.contentCenterX - 30
@@ -205,10 +311,12 @@ local function moveToKazan(lunkaId,k)
     shifted = false
     -- loop through all the stones in lunka
     for i = 1, currentStones do
+        --shifted=false
         -- set movement params using x and y vars defined above
-        rowY = (stonesInKazan+i-1)
+        rowY = stonesInKazan+i-1
         if rowY>58 then
             rowY = rowY - 58
+            if rowX==-15 then rowX = 15 end
             if not shifted then
                 rowX = rowX + 15
                 shifted = true
@@ -244,6 +352,8 @@ local function moveToKazan(lunkaId,k)
         if pos==nil then pos = 0 end
         table.insert( LK[currentKazan], pos+1, tekStone )     
     end
+    --print("getting "..currentStones.." from player "..currentPlayer)
+    totalStones[currentPlayer]=totalStones[currentPlayer]-currentStones
 end
 
 local function returnPlayerTuzdyk(tuzdyk)
@@ -277,38 +387,60 @@ local function makeTurn(lunkaId)
 
    
     -----------
-    
-        local options =
-        {
-            isModal = true,
-            effect = "fade",
-            time = 400,
-            params = {
-                sampleVar1 = "my sample variable",
-                sampleVar2 = "another sample variable"
-            }
-        }
-
-        composer.showOverlay("gameOver", options)
     -----------
-
+    --
 
     if totalStones[startingPlayer] == 0 then 
-
+        --print("got here!")
+        local winnerLoc = 3-startingPlayer
+        if counter.player1.text+0>81 then 
+            winnerLoc=1
+        elseif counter.player2.text+0>81 then 
+            winnerLoc=2
+        end
+        
         local options =
         {
             isModal = true,
             effect = "fade",
             time = 400,
             params = {
-                sampleVar1 = "my sample variable",
-                sampleVar2 = "another sample variable"
+                state = "atsyz",
+                winner = winnerLoc
             }
         }
 
         composer.showOverlay("gameOver", options)
     end
+    --[[
+    if counter.player1.text+0 > 81 then
+        local options =
+        {
+            isModal = true,
+            effect = "fade",
+            time = 400,
+            params = {
+                state = "gameOver",
+                winner = "1"
+            }
+        }
 
+        composer.showOverlay("gameOver", options)
+    elseif counter.player2.text+0>81 then
+        local options =
+        {
+            isModal = true,
+            effect = "fade",
+            time = 400,
+            params = {
+                state = "gameOver",
+                winner = "2"
+            }
+        }
+
+        composer.showOverlay("gameOver", options)
+    end
+    --]]
     if currentStones==0 then
         return true
     elseif currentStones==1 then
@@ -416,7 +548,7 @@ local function makeTurn(lunkaId)
                     then
                     
                     tuzdyk1 = lastLunkaId
-                    print("Tuzdyk1 = "..lastLunkaId)
+                    --print("Tuzdyk1 = "..lastLunkaId)
                 
                     ----------------------
                 elseif (startingPlayer==2) and (tuzdyk2=="0")
@@ -424,19 +556,19 @@ local function makeTurn(lunkaId)
                     then
                     
                     tuzdyk2 = lastLunkaId
-                    print("Tuzdyk 2 = "..lastLunkaId)
+                    --print("Tuzdyk 2 = "..lastLunkaId)
                     ----------------------
                 else
-                    print("Breaking tuzdyk cycle")
+                    --print("Breaking tuzdyk cycle")
                     continue = false
                 end
                 if continue then 
                     --thisIsSceneGroup:remove(lunka[lastLunkaId])
-                    print("skin is "..skin)
+                    --print("skin is "..skin)
                     lunka[lastLunkaId] = nil
                     lunka[lastLunkaId] = returnImage("tuzdyk.png")
 
-                    print("Setting tuzdyk image!")
+                    --print("Setting tuzdyk image!")
                     local yL = (lunkaWidth+10)*lastLunkaId+100
                     local xL = lunkaHeight
                     if startingPlayer==1 then 
@@ -454,9 +586,46 @@ local function makeTurn(lunkaId)
         end
 
     end
-
+    --print("player 1 has "..totalStones[1].." stones")
+    --print("player 2 has "..totalStones[2].." stones")
+    --print("End turn")
     p1turn = not p1turn
 
+    if p1turn then
+        otsvetit(1)
+        podsvetit(2)
+    else
+        otsvetit(2)
+        podsvetit(1)
+    end
+
+    if counter.player1.text+0 > 81 then
+        local options =
+        {
+            isModal = true,
+            effect = "fade",
+            time = 400,
+            params = {
+                state = "gameOver",
+                winner = "1"
+            }
+        }
+
+        composer.showOverlay("gameOver", options)
+    elseif counter.player2.text+0>81 then
+        local options =
+        {
+            isModal = true,
+            effect = "fade",
+            time = 400,
+            params = {
+                state = "gameOver",
+                winner = "2"
+            }
+        }
+
+        composer.showOverlay("gameOver", options)
+    end
 end
 
 local function lunkaClick(event)
@@ -466,14 +635,18 @@ local function lunkaClick(event)
     if event.phase == "ended" then
         --print(event.target.id)
         if (lunkaId<10) and (p1turn) then
+            if soundPlaying == false then
+                audio.play(stoneSnd,{ onComplete=soundFinished })
+            end
             makeTurn(lunkaId)
         elseif (lunkaId>9) and (not p1turn) then
+            if soundPlaying == false then
+                audio.play(stoneSnd,{ onComplete=soundFinished })
+            end
             makeTurn(lunkaId)
         end
     end
 end
-
-
 
 local function drawBoard(skin, group)
     if skin~="wood" then colorIndex = 2 end
@@ -506,6 +679,8 @@ local function drawBoard(skin, group)
 
         counter[i] = display.newText("0", 10, (lunkaWidth + 10)*i + 100, 
             native.systemFontBold, 30)
+        counter[i].x = 20
+        --print("setting "..i.." as text field")
         counter[i]:setFillColor(color[colorIndex][1], 
             color[colorIndex][2], color[colorIndex][3])
         counter[i]:rotate(90)
@@ -520,6 +695,7 @@ local function drawBoard(skin, group)
         counter[i+9] = display.newText("0", display.contentWidth - 10, 
             (lunkaWidth + 10)*(10-i) + 100, 
             native.systemFontBold, 30)
+        counter[i+9].x = display.contentWidth - 20
         counter[i+9]:setFillColor(color[colorIndex][1], 
             color[colorIndex][2], color[colorIndex][3])
         counter[i+9]:rotate(-90)
@@ -569,6 +745,13 @@ end
 
 local function cleanBoard(group)
     -- body
+    local total = group.numChildren
+    --print("total objects "..total)
+    for i = 1, total do
+        if group[i]~=nil then 
+        group[i]:removeSelf()
+        end
+    end
 end
 
 local function initNewGame()
@@ -577,12 +760,12 @@ local function initNewGame()
     local p1turn
 
     for i =1,18 do
-        data[i]="9"
+        data[tostring(i)]="9"
     end
-    data.player1 = "0"
-    data.player2 = "0"
-    data.tuzdyk1 = "0"
-    data.tuzdyk2 = "0"
+    data["player1"]= "0"
+    data["player2"] = "0"
+    data["tuzdyk1"] = "0"
+    data["tuzdyk2"] = "0"
 
     x = math.random(2)
     if x==1 then
@@ -590,9 +773,9 @@ local function initNewGame()
     else
         p1turn = false
     end
-    data.p1turn = p1turn
-    data.totalStones1 = 81
-    data.totalStones2 = 81
+    data["p1turn"] = p1turn
+    data["totalStones1"] = 81
+    data["totalStones2"] = 81
 
     return data
 end
@@ -600,6 +783,7 @@ end
 local function loadGame()
     local contents
     local savedData = {}
+    --counter = {}
     print("Loading game state")
     fileHandle, errorString  = io.open( saveGameFilePath,"r" )
     if fileHandle then
@@ -607,59 +791,120 @@ local function loadGame()
         local contents = fileHandle:read( "*a" )
         local decoded, pos, msg = json.decode( contents )
         savedData = decoded
+        --[[
+        print("Printing saved data:")
 
-        for i =1,18 do
-            counter[i]=savedData[i]
+        for k, v in pairs( savedData ) do
+            print(k, v)
         end
-        counter.player1 = savedData.player1
-        counter.player2 = savedData.player2 
-        counter.tuzdyk1 = savedData.tuzdyk1 
-        counter.tuzdyk2 = savedData.tuzdyk2 
-        p1turn = savedData.p1turn  
-        totalStones[1]=savedData.totalStones1
-        totalStones[2]=savedData.totalStones2
+        --]]
+        for i =1, 18 do
+            counter[i].text=decoded[tostring(i)]
+            --print("loading saved data lunka "..i.." = "..tostring(decoded[tostring(i)]))
+        end
+        counter.player1.text = savedData["player1"]
+        counter.player2.text = savedData["player2"]
+        tuzdyk1 = savedData["tuzdyk1"]
+        if tuzdyk1~="0" then
+            thisIsSceneGroup:remove(lunka[tuzdyk1])
+            lunka[tuzdyk1] = returnImage("tuzdyk.png")
+                    
+                    
+                        yL = (lunkaWidth+10)*(18-tuzdyk1+1) +100
+                        xL = display.contentWidth - lunkaHeight
+                    
+
+                    lunka[tuzdyk1].y = yL
+                    lunka[tuzdyk1].x = xL
+
+                    thisIsSceneGroup:insert(lunka[tuzdyk1])
+
+        end    
+        tuzdyk2 = savedData["tuzdyk2"]
+        if tuzdyk2~="0" then
+            lunka[tuzdyk2] = nil
+                    lunka[tuzdyk2] = returnImage("tuzdyk.png")
+
+                    --print("Setting tuzdyk image!")
+                    local yL = (lunkaWidth+10)*tuzdyk2+100
+                    local xL = lunkaHeight
+                    
+
+                    lunka[tuzdyk2].y = yL
+                    lunka[tuzdyk2].x = xL
+
+                    thisIsSceneGroup:insert(lunka[tuzdyk2])
+        end
+        p1turn = savedData["p1turn"] 
+        totalStones[1]=savedData["totalStones1"]
+        totalStones[2]=savedData["totalStones2"]
 
         fileHandle:write(contents)
     end
     io.close(fileHandle)
+    --print("returning saved data from loading = "..savedData)
     return savedData
 end
 
-
-local function initBoard(data)
+local function initBoard(savedData)
     local currentStones = 0
     local lastUsedStone = 0
     local pos = 1
+    local data = {}
     local playerIndex = 1
     totalStones[1]=0
     totalStones[2]=0
-    p1turn = data.p1turn
+    data = savedData
+    p1turn = data["p1turn"]
+    if p1turn then
+        otsvetit(1)
+        podsvetit(2)
+    else
+        otsvetit(2)
+        podsvetit(1)
+    end
 
     for i=1, 18 do
-        pos = 1 
-        counter[i].text = data[i]
-        currentStones = data[i]+0
+        --pos = 1 
+        --print(tostring(data[tostring(i)]))
+        counter[i].text = tostring(data[tostring(i)])
+        currentStones = tostring(data[tostring(i)])+0
         if i>9 then 
             playerIndex = 2 
         end
         
         totalStones[playerIndex]=currentStones+totalStones[playerIndex]
+        --print("setting stones for player "..playerIndex.." = "..totalStones[playerIndex])
 
         LK[i]={}
         for j=lastUsedStone+1,lastUsedStone+currentStones do
             --print("Moving stone"..stones[j].id.." to lunka #"..i)
             moveStone(j,0,i)
-            pos = pos + 1
+
+            --pos = pos + 1
         end
         lastUsedStone = lastUsedStone+currentStones
     end
-    counter.player1.text = data.player1
-    counter.player2.text = data.player2
+    --print("player 1 kazan = "..data["player1"])
+    LK[19]={}
+    for i=1,data["player1"] do
+        --print("moving stone "..lastUsedStone.." to kazan 1")
+        moveStoneToKazan(lastUsedStone,1)
+        lastUsedStone = lastUsedStone+1
+    end
+    LK[20]={}
+    for i =1, data["player2"] do
+        
+        moveStoneToKazan(lastUsedStone,2)
+        lastUsedStone = lastUsedStone+1
+    end
+    counter.player1.text = data["player1"]
+    counter.player2.text = data["player2"]
     LK[19] = {}
     LK[20] = {}
-    tuzdyk1 = data.tuzdyk1
+    tuzdyk1 = data["tuzdyk1"]
 
-    tuzdyk2 = data.tuzdyk2
+    tuzdyk2 = data["tuzdyk2"]
     gameOver = false
     --print("Player 1 has "..totalStones[1].." stones")
     --print("Player 2 has "..totalStones[2].." stones")  
@@ -680,12 +925,19 @@ function scene:show( event )
     local sceneGroup = self.view
     local phase = event.phase
     local data = {}
+    gameSettings = composer.getVariable("gameSettings")
+    skin = gameSettings.skin
+    isNewGame = composer.getVariable("newGame")
 
     if ( phase == "will" ) then
+        --print("Drawing board with skin = "..skin)
         drawBoard(skin, sceneGroup)
-        if isNewGame then
+        --print("is the game new? "..tostring(isNewGame))
+        if not isNewGame then
+            print("loading saved game")
             data = loadGame()
         else
+            print("starting new game")
             data = initNewGame()
         end
         initBoard(data)
@@ -697,7 +949,6 @@ function scene:show( event )
         -- Example: start timers, begin animation, play audio, etc.
     end
 end
-
 
 -- "scene:hide()"
 
@@ -716,7 +967,6 @@ function scene:hide( event )
         -- Called immediately after scene goes off screen.
     end
 end
-
 
 -- "scene:destroy()"
 function scene:destroy( event )
