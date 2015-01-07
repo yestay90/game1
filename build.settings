@@ -7,11 +7,13 @@ settings =
 {
  	plugins =
     {
-        ["CoronaProvider.gameNetwork.google"] =
-        {
-            publisherId = "com.coronalabs",
-            supportedPlatforms = { android=true },
-        },
+        -- key is the name passed to Lua's 'require()'
+		["CoronaProvider.gameNetwork.google"] =
+		{
+			-- required
+			publisherId = "com.coronalabs",
+			supportedPlatforms = { android = true }
+		},
     },
 	
 	orientation =
