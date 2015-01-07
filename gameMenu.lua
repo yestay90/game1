@@ -13,25 +13,31 @@ local arrow
 local strings = composer.getVariable( "strings" )
 
 local function menuItemTap (event)
-	if selectedMenuItem==event.target.id then
-		composer.gotoScene( event.target.id )
-	else
-		previousMenuItem:setFillColor( 1 )
-		selectedMenuItem = event.target.id
-		previousMenuItem = event.target
-		arrow.x = event.target.x - 40
-		arrow.y = event.target.y
-		
-		event.target:setFillColor( 0.25, 0.168, 0.121  )
-	end
+  if selectedMenuItem==event.target.id then
+    if event.target.id == "loadGame" then
+      composer.setVariable("newGame",false)
+      composer.gotoScene("localMultiplayer")
+    else
+      composer.setVariable("newGame",true)
+      composer.gotoScene( event.target.id )
+    end
+  else
+    previousMenuItem:setFillColor( 1 )
+    selectedMenuItem = event.target.id
+    previousMenuItem = event.target
+    arrow.x = event.target.x - 40
+    arrow.y = event.target.y
+    
+    event.target:setFillColor( 0.25, 0.168, 0.121  )
+  end
 end
 
 function scene:create( event )
   local sceneGroup = self.view
   local sceneGroup = self.view
   language = gameSettings.language
-  menuItems = strings.optionsMenu
-  menuItemTexts = strings[language.."Options"]
+  menuItems = strings.gameMenu
+  menuItemTexts = strings[language.."GameMenu"]
 
   menuBackground = display.newImage( "images/menuBackground.png" )
   menuBackground.x = display.contentCenterX
@@ -78,9 +84,9 @@ function scene:show( event )
     local phase = event.phase
 
     if phase == "will" then
-    	language = gameSettings.language
-      menuItems = strings.optionsMenu
-      menuItemTexts = strings[language.."Options"]
+      language = gameSettings.language
+      menuItems = strings.gameMenu
+      menuItemTexts = strings[language.."GameMenu"]
       for i=1,#menuItemTexts do
         menuItemIds[i].text = menuItemTexts[i]
       end
@@ -104,7 +110,7 @@ end
 function scene:destroy( event )
     local sceneGroup = self.view
 
-   	sceneGroup:removeSelf()
+    sceneGroup:removeSelf()
 end
 
 ---------------------------------------------------------------------------------

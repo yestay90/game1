@@ -23,6 +23,7 @@ local function loadUserData()
   	end
   	io.close( fileHandle )
   	-- load strings
+    
 	local fileHandle, errorString = io.open(stringsPath,"r")
   
 	if fileHandle then
@@ -32,10 +33,14 @@ local function loadUserData()
 	else
    local fileHandle = io.open( stringsPath, "w" )
     fileHandle:write([[{
-      "enMenu":["Play vs robot","Play vs player","Options","Game rules","Load game"],
-      "kzMenu":["Роботқа қарсы ойнау","Басқа адаммен ойнау","Параметрлер","Оыйн шарттары","Ойынды жүктеу"],
-      "mainMenu":["gameVsRobot","game","options","rules","loadGame"],
-      "ruMenu":["Играть против робота","Играть против игрока","Настройки","Правила игры","Загрузить игру"],
+      "mainMenu":["networkGame","gameMenu","options","rules"],
+      "enMenu":["Play online","Local game","Options","Game rules"],
+      "kzMenu":["Интернет арқылы ойнау","Локалды ойнау","Параметрлер","Оыйн шарттары"],
+      "ruMenu":["Играть по сети","Играть локально","Настройки","Правила игры"],
+      "gameMenu":["newGame","loadGame","localMultiplayer"],
+      "ruGameMenu":["Новая игра","Загрузить игру","Играть вдвоем"],
+      "enGameMenu":["New game","Load game","Two player game"],
+      "kzGameMenu":["Жаңа ойын","Ойынды жүктеу","Екі адамды ойын"],
       "optionsMenu":["language","skin","menu"],
       "enOptions":["Language","Skin","<- Go back"],
       "ruOptions":["Язык","Оформление","<- Вернуться"],
