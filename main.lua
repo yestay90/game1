@@ -23,23 +23,23 @@ local function loadUserData()
   	end
   	io.close( fileHandle )
   	-- load strings
-	fileHandle, errorString = io.open(stringsPath,"r")
+	local fileHandle, errorString = io.open(stringsPath,"r")
   
 	if fileHandle then
     	local contents = fileHandle:read( "*a" )
     	strings = loadsave.loadTable("strings.json")
     	composer.setVariable( "strings", strings )
 	else
-    fileHandle = io.open( stringsPath, "w" )
+   local fileHandle = io.open( stringsPath, "w" )
     fileHandle:write([[{
       "enMenu":["Play vs robot","Play vs player","Options","Game rules","Load game"],
       "kzMenu":["Роботқа қарсы ойнау","Басқа адаммен ойнау","Параметрлер","Оыйн шарттары","Ойынды жүктеу"],
       "mainMenu":["gameVsRobot","game","options","rules","loadGame"],
       "ruMenu":["Играть против робота","Играть против игрока","Настройки","Правила игры","Загрузить игру"],
-      "optionsMenu":["language","playerName","skin","menu"],
-      "enOptions":["Language","Player name","Skin","<- Go back"],
-      "ruOptions":["Язык","Имя игрока","Оформление","<- Вернуться"],
-      "kzOptions":["Тіл","Ойыншының аты","Тақтаның түсі","<- Артқа"],
+      "optionsMenu":["language","skin","menu"],
+      "enOptions":["Language","Skin","<- Go back"],
+      "ruOptions":["Язык","Оформление","<- Вернуться"],
+      "kzOptions":["Тіл","Тақтаның түсі","<- Артқа"],
       "languageMenu":["kz","ru","en"],
       "enLanguages":["Kazakh","Russian","English"],
       "ruLanguages":["Казахский","Русский","Английский"],

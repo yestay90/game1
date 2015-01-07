@@ -74,7 +74,7 @@ function scene:show( event )
         left = 10,
         width = display.contentWidth-0,
         height = display.contentHeight-300,
-        scrollWidth = display.contentWidth-200,
+        scrollWidth = display.contentWidth-50,
         scrollHeight =1000,
         hideBackground = true
     }
@@ -91,7 +91,7 @@ function scene:show( event )
     local yOffset = 10
 
     repeat
-        paragraph, tmpString = string.match( tmpString, "([^\n]*)\n(.*)" )
+        paragraph, tmpString = string.match( tmpString, "([^\n]*)\n(.*)" ) --
         if (paragraph~=nil) then
             options.text = paragraph
             paragraphs[#paragraphs+1] = display.newText( options )

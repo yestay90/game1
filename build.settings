@@ -5,6 +5,14 @@
 
 settings =
 {
+ 	plugins =
+    {
+        ["CoronaProvider.gameNetwork.google"] =
+        {
+            publisherId = "com.coronalabs",
+            supportedPlatforms = { android=true },
+        },
+    },
 	
 	orientation =
 	{
@@ -73,6 +81,7 @@ settings =
 	--
 	android =
 	{
+		googlePlayGamesAppId = "558014537240",
 		usesPermissions =
 		{
 			"android.permission.INTERNET",

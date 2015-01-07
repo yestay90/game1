@@ -5,8 +5,10 @@ local thisIsSceneGroup
 local json = require("json")
 local saveGameFilePath = system.pathForFile( "savedGame.json", system.DocumentsDirectory )
 
-local stoneSnd = audio.loadSound( "stone_group.wav") -- stone_single
+local stoneSnd = audio.loadSound( "stone_single.wav") -- stone_single
+local stonesSnd = audio.loadSound( "stone_group.wav")
 local soundPlaying = false 
+local backgroundMusic = audio.loadStream( "background_konyl.wav" )
 
 local gameSettings = composer.getVariable("gameSettings")
 local skin = gameSettings.skin
@@ -30,6 +32,20 @@ local colorIndex = 1
 local stones = {}
 local totalStones = {}
 local gameOver = false
+
+local function onKeyEvent(event)
+    if (event.keyName == "back") then
+        local platformName = system.getInfo( "platformName" )
+        if ( platformName == "Android" ) then
+            composer.gotoScene( "menu")
+            return false
+        end
+    end
+
+    -- IMPORTANT! Return false to indicate that this app is NOT overriding the received key
+    -- This lets the operating system execute its default handling of the key
+    return false
+end
 
 local function podsvetit(player)
     -- 1 from 1 to 9
@@ -277,7 +293,6 @@ local function moveStoneToKazan(tekStone,k)
         local pos = #LK[currentKazan]
         if pos==nil then pos = 0 end
         table.insert( LK[currentKazan], pos+1, tekStone ) 
-
 end
 
 local function moveToKazan(lunkaId,k)
@@ -412,39 +427,12 @@ local function makeTurn(lunkaId)
 
         composer.showOverlay("gameOver", options)
     end
-    --[[
-    if counter.player1.text+0 > 81 then
-        local options =
-        {
-            isModal = true,
-            effect = "fade",
-            time = 400,
-            params = {
-                state = "gameOver",
-                winner = "1"
-            }
-        }
-
-        composer.showOverlay("gameOver", options)
-    elseif counter.player2.text+0>81 then
-        local options =
-        {
-            isModal = true,
-            effect = "fade",
-            time = 400,
-            params = {
-                state = "gameOver",
-                winner = "2"
-            }
-        }
-
-        composer.showOverlay("gameOver", options)
-    end
-    --]]
     if currentStones==0 then
         return true
     elseif currentStones==1 then
-        
+        if soundPlaying == false then
+                audio.play(stoneSnd,{ onComplete=soundFinished })
+            end
         if nextLunkaId>18 then 
             nextLunkaId = 1 
             lastLunkaId = nextLunkaId
@@ -510,7 +498,9 @@ local function makeTurn(lunkaId)
         end
 
     elseif currentStones > 1 then
-
+        if soundPlaying == false then
+                audio.play(stonesSnd,{ onComplete=soundFinished })
+            end
         setKamni(lunkaId,1)
 
         for i=1, currentStones - 1 do 
@@ -635,20 +625,25 @@ local function lunkaClick(event)
     if event.phase == "ended" then
         --print(event.target.id)
         if (lunkaId<10) and (p1turn) then
-            if soundPlaying == false then
-                audio.play(stoneSnd,{ onComplete=soundFinished })
-            end
             makeTurn(lunkaId)
         elseif (lunkaId>9) and (not p1turn) then
-            if soundPlaying == false then
-                audio.play(stoneSnd,{ onComplete=soundFinished })
-            end
             makeTurn(lunkaId)
         end
     end
 end
 
 local function drawBoard(skin, group)
+    local audioOptions = {
+        channel = 1,
+        loops = -1,
+        fadein = 1000
+    }
+    audio.setVolume( 0.1, {channel = 1} )
+    audio.play( backgroundMusic, audioOptions)
+    --audio.setVolume( 0.1, {channel = 1} )
+
+
+
     if skin~="wood" then colorIndex = 2 end
     local background = returnImage("board.png")
     background.x = display.contentCenterX
@@ -944,6 +939,7 @@ function scene:show( event )
 
         -- Called when the scene is still off screen (but is about to come on screen).
     elseif ( phase == "did" ) then
+         Runtime:addEventListener( "key", onKeyEvent )
         -- Called when the scene is now on screen.
         -- Insert code here to make the scene come alive.
         -- Example: start timers, begin animation, play audio, etc.
