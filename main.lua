@@ -17,11 +17,20 @@ local function loadUserData()
 	    gameSettings = loadsave.loadTable("data.json")
 	    composer.setVariable( "gameSettings", gameSettings )
 	    language = gameSettings.language
+      io.close( fileHandle )
   	else
       fileHandle = io.open( dataPath,"w" )
       fileHandle:write( [[{"difficulty":"easy","language":"ru","highScore":"0","playerName":"Talgat","skin":"wood"}]] )
-  	end
-  	io.close( fileHandle )
+  	  io.close( fileHandle )
+      local fileHandle, errorString = io.open(dataPath,"r")
+      local contents = fileHandle:read( "*a" )
+      local decoded, pos, msg = json.decode( contents )
+      gameSettings = loadsave.loadTable("data.json")
+      composer.setVariable( "gameSettings", gameSettings )
+      language = gameSettings.language
+      io.close( fileHandle )
+    end
+  	
   	-- load strings
     
 	local fileHandle, errorString = io.open(stringsPath,"r")
@@ -30,6 +39,7 @@ local function loadUserData()
     	local contents = fileHandle:read( "*a" )
     	strings = loadsave.loadTable("strings.json")
     	composer.setVariable( "strings", strings )
+      io.close( fileHandle )
 	else
    local fileHandle = io.open( stringsPath, "w" )
     fileHandle:write([[{
@@ -63,8 +73,14 @@ local function loadUserData()
       "kzGameOver":["Ойын аяқталды!", "-ойыншы ұтты!","Атсыз қалу!","Ұпай","Ең үлкен ұпай!"],
       "enGameOver":["Game over!", "Player win","No more moves!","Points","Personal highscore!"]
     }]])
+    io.close( fileHandle )
+    local fileHandle, errorString = io.open(stringsPath,"r")
+    local contents = fileHandle:read( "*a" )
+      strings = loadsave.loadTable("strings.json")
+      composer.setVariable( "strings", strings )
+      io.close( fileHandle )
 	end
-  io.close( fileHandle )
+  
   composer.setVariable( "menuTop", 600 )
   composer.setVariable( "menuLeft", 70 )
   composer.setVariable("newGame",false)

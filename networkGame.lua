@@ -4,28 +4,46 @@ local widget = require("widget")
 local menuTop =  composer.getVariable( "menuTop" )+0
 local menuLeft = composer.getVariable( "menuLeft" )+0
 local gameSettings = composer.getVariable( "gameSettings" )
-local playerID,alias
 
 -- network data
 local gameNetwork = require( "gameNetwork" )
+local playerID = ""
+local alias = ""
+local thisGroup
+local int = 1
+    local table = {}
+    local texts = {}
+    local msg = ""
 --------------------
-local function requestCallback2 ( event )
-
-  playerID = event.data.playerID
-  alias = event.data.alias
-  native.showAlert("player ID = "..playerID..", alias = "..alias, {"OK"})
-
-end
 
 local function requestCallback ( event )
-  
-    gameNetwork.request( "loadLocalPlayer", { listener=requestCallback2 } )
-  
+    
+    if event.isError then
+        native.showAlert( "Login failed" ,"Login failed" ,{ "OK" })
+    else
+        
+        if (event.data ~= nil) then 
+            table = event.data
+        else 
+            native.showAlert("data table is nil", "data table is nil", {"OK"} )
+        end
+        for k, v in pairs( table ) do
+            msg = k.. v
+            texts[i] = display.newText( thisGroup, msg, 
+                100, 100*int, native.systemFont, 50 )
+            int = int + 1
+            texts[i].x = 100
+            texts[i].y = 100*int
+            texts[i]:setTextColor( 1, 1, 1 )
+        end
+    end
 end
 
 
 local function initCallback( event )
     if not event.isError then
+        playerID = event.data.playerID
+        alias = event.data.alias
         gameNetwork.request( "login",
           {
             userInitiated = true,
@@ -48,7 +66,7 @@ end
 function scene:show( event )
     local sceneGroup = self.view
     local phase = event.phase
-
+    thisGroup = sceneGroup
     if phase == "will" then
         gameNetwork.init("google",initCallback)
     elseif phase == "did" then
