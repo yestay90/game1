@@ -58,6 +58,7 @@ local function requestLoadFriendsCallback(event)
             paragraphs[#paragraphs].y = yOffset
             paragraphs[#paragraphs]:setFillColor( 1,1,1 )
             scrollView:insert( paragraphs[#paragraphs] )
+            yOffset = yOffset + paragraphs[#paragraphs].height
         end
         
     end
@@ -81,6 +82,7 @@ local function drawWelcomeScreen()
 
     composer.gameNetwork.request( "loadFriends", { listener=requestLoadFriendsCallback } )
     
+<<<<<<< HEAD
 end
 
 local function requestLoadLocalPlayerCallback (event)
@@ -98,20 +100,34 @@ local function requestCallback ( event )
     else
         native.showAlert("You are not connected","!",{"OK"})
     end
+=======
+   
+>>>>>>> origin/master
 end
 
 
 local function initCallback( event )
     if not event.isError then
+<<<<<<< HEAD
         composer.gameNetwork.request( "login",
           {
+=======
+       
+        gameNetwork.request( "login",
+        {
+>>>>>>> origin/master
             userInitiated = true,
             listener = requestCallback
-          }
+        }
         )
+        native.showAlert( "Success!", "", { "OK" } )
     else
         native.showAlert( "Failed!", event.errorMessage, { "OK" } )
     end
+end
+
+local function onSystemEvent( event )
+    -- body
 end
 
 --------------------------------------------
