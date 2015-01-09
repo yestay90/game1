@@ -17,6 +17,7 @@ local LK = {}
 local p1turn = true
 local isNewGame = composer.getVariable("newGame")
 local selectedLunka = 0
+local backgroundMusicVolume = 0.8
 
 local stoneSpeed = 300
 local delayToMoveToKazan = 300
@@ -638,7 +639,7 @@ local function drawBoard(skin, group)
         loops = -1,
         fadein = 1000
     }
-    audio.setVolume( 0.1, {channel = 1} )
+    audio.setVolume( backgroundMusicVolume, {channel = 1} )
     audio.play( backgroundMusic, audioOptions)
     --audio.setVolume( 0.1, {channel = 1} )
 

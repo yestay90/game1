@@ -14,7 +14,8 @@ local function loadUserData()
     if fileHandle then
 	    local contents = fileHandle:read( "*a" )
 	    local decoded, pos, msg = json.decode( contents )
-	    gameSettings = loadsave.loadTable("data.json")
+	    --gameSettings = loadsave.loadTable("data.json")
+      gameSettings = decoded
 	    composer.setVariable( "gameSettings", gameSettings )
 	    language = gameSettings.language
       io.close( fileHandle )
@@ -25,7 +26,8 @@ local function loadUserData()
       local fileHandle, errorString = io.open(dataPath,"r")
       local contents = fileHandle:read( "*a" )
       local decoded, pos, msg = json.decode( contents )
-      gameSettings = loadsave.loadTable("data.json")
+      --gameSettings = loadsave.loadTable("data.json")
+      gameSettings = decoded
       composer.setVariable( "gameSettings", gameSettings )
       language = gameSettings.language
       io.close( fileHandle )
@@ -37,7 +39,9 @@ local function loadUserData()
   
 	if fileHandle then
     	local contents = fileHandle:read( "*a" )
-    	strings = loadsave.loadTable("strings.json")
+      local decoded, pos, msg = json.decode( contents )
+      strings = decoded
+    	--strings = loadsave.loadTable("strings.json")
     	composer.setVariable( "strings", strings )
       io.close( fileHandle )
 	else
@@ -76,7 +80,9 @@ local function loadUserData()
     io.close( fileHandle )
     local fileHandle, errorString = io.open(stringsPath,"r")
     local contents = fileHandle:read( "*a" )
-      strings = loadsave.loadTable("strings.json")
+    local decoded, pos, msg = json.decode( contents )
+      strings = decoded
+      --strings = loadsave.loadTable("strings.json")
       composer.setVariable( "strings", strings )
       io.close( fileHandle )
 	end

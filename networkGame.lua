@@ -1,50 +1,109 @@
 local composer = require( "composer" )
 local scene = composer.newScene()
+
 local widget = require("widget")
-local menuTop =  composer.getVariable( "menuTop" )+0
-local menuLeft = composer.getVariable( "menuLeft" )+0
 local gameSettings = composer.getVariable( "gameSettings" )
 
 -- network data
-local gameNetwork = require( "gameNetwork" )
-local playerID = ""
-local alias = ""
+composer.gameNetwork = require( "gameNetwork" )
+local playerID
+local alias
 local thisGroup
-local int = 1
-    local table = {}
-    local texts = {}
-    local msg = ""
+local texts = {}
+local friends = {}
+local menuBackground
+local myText
+local scrollView
 --------------------
+local function handleBackBtn(event)
+    if ("ended"==event.phase) then
+        composer.gotoScene("menu")
+    end
+end
+
+local function requestLoadFriendsCallback(event)
+    friends = event.data
+    local newText = display.newText(thisGroup,"Friends list",100,20,native.systemFontBold,40)
+    local paragraphs = {}
+    local paragraph
+
+    scrollView = widget.newScrollView
+    {
+        top = 140,
+        left = 10,
+        width = display.contentWidth-0,
+        height = display.contentHeight-300,
+        scrollWidth = display.contentWidth-50,
+        scrollHeight =1000,
+        hideBackground = true
+    }
+    local options = {
+        text = "",
+        left = 10,
+        width = display.contentWidth-50,
+        font = native.systemFontBold,
+        fontSize = 40,
+        align = "left"
+    }
+    local yOffset = 10
+
+    if #friends>0 then
+        for i=1,#friends do
+            paragraph = friends[i].alias
+            options.text = paragraph.."\n"
+            paragraphs[#paragraphs+1] = display.newText( options )
+            paragraphs[#paragraphs].anchorX = 0
+            paragraphs[#paragraphs].anchorY = 0
+            paragraphs[#paragraphs].x = 10
+            paragraphs[#paragraphs].y = yOffset
+            paragraphs[#paragraphs]:setFillColor( 1,1,1 )
+            scrollView:insert( paragraphs[#paragraphs] )
+        end
+        
+    end
+    thisGroup:insert(scrollView)
+end
+
+local function drawWelcomeScreen()
+    menuBackground = display.newImage( "images/rules_bg.png")
+    menuBackground.x = display.contentCenterX
+    menuBackground.y = display.contentCenterY
+    thisGroup:insert(menuBackground)
+
+    local backBtn = widget.newButton{
+            top = 35,
+            left = 240,
+            defaultFile = "images/back.png",
+            overFile = "images/back.png",
+            onEvent = handleBackBtn
+        }
+    thisGroup:insert(backBtn)
+
+    composer.gameNetwork.request( "loadFriends", { listener=requestLoadFriendsCallback } )
+    
+end
+
+local function requestLoadLocalPlayerCallback (event)
+    playerID = event.data.playerID
+    alias = event.data.alias
+    local msg = "Welcome, "..alias..", you are also "..playerID
+    composer.playerID = playerID
+    composer.alias = alias
+    drawWelcomeScreen()
+end
 
 local function requestCallback ( event )
-    
-    if event.isError then
-        native.showAlert( "Login failed" ,"Login failed" ,{ "OK" })
+    if composer.gameNetwork.request("isConnected") then
+        composer.gameNetwork.request( "loadLocalPlayer", { listener = requestLoadLocalPlayerCallback } )
     else
-        
-        if (event.data ~= nil) then 
-            table = event.data
-        else 
-            native.showAlert("data table is nil", "data table is nil", {"OK"} )
-        end
-        for k, v in pairs( table ) do
-            msg = k.. v
-            texts[i] = display.newText( thisGroup, msg, 
-                100, 100*int, native.systemFont, 50 )
-            int = int + 1
-            texts[i].x = 100
-            texts[i].y = 100*int
-            texts[i]:setTextColor( 1, 1, 1 )
-        end
+        native.showAlert("You are not connected","!",{"OK"})
     end
 end
 
 
 local function initCallback( event )
     if not event.isError then
-        playerID = event.data.playerID
-        alias = event.data.alias
-        gameNetwork.request( "login",
+        composer.gameNetwork.request( "login",
           {
             userInitiated = true,
             listener = requestCallback
@@ -68,7 +127,7 @@ function scene:show( event )
     local phase = event.phase
     thisGroup = sceneGroup
     if phase == "will" then
-        gameNetwork.init("google",initCallback)
+        composer.gameNetwork.init("google",initCallback)
     elseif phase == "did" then
         
     end 
@@ -79,7 +138,13 @@ function scene:hide( event )
     local phase = event.phase
 
     if event.phase == "will" then
+        for i=1,sceneGroup.numChildren do
+            if sceneGroup[i]~=nil then 
+                sceneGroup[i]:removeSelf()
+            end
+        end
     elseif phase == "did" then
+
     end 
 end
 
