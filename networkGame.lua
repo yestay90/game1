@@ -34,7 +34,7 @@ local function requestLoadFriendsCallback(event)
         width = display.contentWidth-0,
         height = display.contentHeight-300,
         scrollWidth = display.contentWidth-50,
-        scrollHeight =1000,
+        scrollHeight =10000,
         hideBackground = true
     }
     local options = {

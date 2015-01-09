@@ -193,6 +193,8 @@ local function moveStone(stoneId,origin,dest)
     if j>9 then
         j=10-(dest-9)
     end
+    
+    if origin==dest then return true end
 
     ballPos = #LK[dest]+1
     if ballPos > 58 then
@@ -426,10 +428,10 @@ local function saveTurnsContainer()
     
     
     
-    print("printing array")
-    for k, v in pairs( arraySavingStates ) do
-    print(k, v)
-    end
+    -- print("printing array")
+    -- for k, v in pairs( arraySavingStates ) do
+    -- print(k, v)
+    -- end
 end
 --------------------------------
 
@@ -452,7 +454,7 @@ local function makeTurn(lunkaId)
     numbersOfTurn = 1
 
     
-
+    print("I'm in MakeTurn")
     if totalStones[startingPlayer] == 0 then 
         --print("got here!")
         local winnerLoc = 3-startingPlayer
@@ -502,29 +504,31 @@ local function makeTurn(lunkaId)
         end
         
         if stealStones then
-            --print("I'm here! I can steal stones!!")
+            print("I'm here! I can steal stones!!")
             if isEven(lastLunkaId) then
-                --print("I'm here! Its even!!!")
+                print("I'm here! Its even!!!")
                 moveToKazan(lastLunkaId,startingPlayer)
             end
-            if (counter[lastLunkaId].text=="3") then
-
+            if (counter[lastLunkaId].text=="3")or(counter[lastLunkaId].text==3) then
+                print("here could be tuzdyk")
                 if startingPlayer==1 and tuzdyk1=="0"
                     and tuzdyk2~=(10-(lastLunkaId-9)) and (lastLunkaId~=9) and (lastLunkaId~=18) then
-                    
+                    print("Tuzdyk")
                     tuzdyk1 = lastLunkaId
                 
                     ----------------------
                 elseif startingPlayer==2 and tuzdyk2=="0"
                     and lastLunkaId~=(10-(tuzdyk1-9))  and (lastLunkaId~=9) and (lastLunkaId~=18) then
-                    
+                    print("Tuzdyk")
                     tuzdyk2 = lastLunkaId
 
                     ----------------------
                 else
+                    print("not tuzdyk because "..startingPlayer.." is startingPlayer and tuzdyk1 "..tuzdyk1.." and tuzdyk2 "..tuzdyk2)
                     continue = false
                 end
                 if continue then 
+                    print("Tuzdyk")
                     thisIsSceneGroup:remove(lunka[lastLunkaId])
                     lunka[lastLunkaId] = returnImage("tuzdyk.png")
 
@@ -573,31 +577,36 @@ local function makeTurn(lunkaId)
         end
 
         if stealStones then
-            --print("I'm here! I can steal stones!!")
+            print("I'm here! I can steal stones!!")
+            print("last lunka id is "..lastLunkaId)
+            print("total stones in lunka is "..counter[lastLunkaId].text)
             if isEven(lastLunkaId) then
-                --print("Look! Its even!")
+                print("Look! Its even!")
                 moveToKazan(lastLunkaId,startingPlayer)
             end
-            if (counter[lastLunkaId].text=="3") then
+            if (counter[lastLunkaId].text=="3")or(counter[lastLunkaId].text==3) then
                 
                 continue = true
-                if (startingPlayer==1) and (tuzdyk1=="0")
-                    and tuzdyk2~=(10-(lastLunkaId-9)) and (lastLunkaId~=9) and (lastLunkaId~=18) 
+                if (startingPlayer==1) and ((tuzdyk1=="0") or (tuzdyk1==0))
+                    and tostring(tuzdyk2)~=tostring(lastLunkaId-9) and (lastLunkaId~=9) and (lastLunkaId~=18) 
                     then
                     
                     tuzdyk1 = lastLunkaId
-                    --print("Tuzdyk1 = "..lastLunkaId)
+                    print("Tuzdyk1 = "..lastLunkaId)
                 
                     ----------------------
-                elseif (startingPlayer==2) and (tuzdyk2=="0")
-                    and lastLunkaId~=(10-(tuzdyk1-9))  and (lastLunkaId~=9) and (lastLunkaId~=18) 
+                elseif (startingPlayer==2) and ((tuzdyk2=="0") or (tuzdyk2==0))
+                    and tostring(lastLunkaId)~=tostring(tuzdyk1-9)  and (lastLunkaId~=9) and (lastLunkaId~=18) 
                     then
                     
                     tuzdyk2 = lastLunkaId
-                    --print("Tuzdyk 2 = "..lastLunkaId)
+                    print("Tuzdyk 2 = "..lastLunkaId)
                     ----------------------
                 else
-                    --print("Breaking tuzdyk cycle")
+                    print("Breaking tuzdyk cycle")
+                    print("lastLunkaId = "..lastLunkaId)
+                    print("startingPlayer = "..startingPlayer)
+                    print("tuzdyk1 "..tuzdyk1.." and tuzdyk2 "..tuzdyk2)
                     continue = false
                 end
                 if continue then 
@@ -606,7 +615,7 @@ local function makeTurn(lunkaId)
                     lunka[lastLunkaId] = nil
                     lunka[lastLunkaId] = returnImage("tuzdyk.png")
 
-                    --print("Setting tuzdyk image!")
+                    print("Setting tuzdyk image!")
                     local yL = (lunkaWidth+10)*lastLunkaId+100
                     local xL = lunkaHeight
                     if startingPlayer==1 then 
@@ -988,7 +997,24 @@ function scene:goBack()
 end
 
 
+-------------------
+local function drawTuzdyk(lastLunkaId)
+    thisIsSceneGroup:remove(lunka[lastLunkaId])
+    lunka[lastLunkaId] = returnImage("tuzdyk.png")
 
+
+    local yL = (lunkaWidth+10)*lastLunkaId+100
+    local xL = lunkaHeight
+    if startingPlayer==1 then 
+        yL = (lunkaWidth+10)*(18-lastLunkaId+1) +100
+        xL = display.contentWidth - lunkaHeight
+    end
+
+    lunka[lastLunkaId].y = yL
+    lunka[lastLunkaId].x = xL
+
+    thisIsSceneGroup:insert(lunka[lastLunkaId])
+end
 ----------------------------------------------
 
 local function initBoard(savedData)
@@ -1055,9 +1081,15 @@ local function initBoard(savedData)
     counter.player2.text = data["player2"]
     LK[19] = {}
     LK[20] = {}
-    tuzdyk1 = data["tuzdyk1"]
+    tuzdyk1 = data["tuzdyk1"]+0
+    if tuzdyk1>0 then
+        drawTuzdyk(tuzdyk1)
+    end
 
-    tuzdyk2 = data["tuzdyk2"]
+    tuzdyk2 = data["tuzdyk2"]+0
+    if tuzdyk2>0 then
+        drawTuzdyk(tuzdyk2)
+    end
     gameOver = false
     --print("Player 1 has "..totalStones[1].." stones")
     --print("Player 2 has "..totalStones[2].." stones")  
@@ -1083,7 +1115,7 @@ local contents
         end
         --]]
         for i =1, 18 do
-            counter[i].text=savedData[tostring(i)]
+            counter[i].text=tostring(savedData[tostring(i)])
             --print("loading saved data lunka "..i.." = "..tostring(decoded[tostring(i)]))
         end
         counter.player1.text = savedData["player1"]
