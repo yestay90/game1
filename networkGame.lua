@@ -23,7 +23,7 @@ end
 
 local function requestLoadFriendsCallback(event)
     friends = event.data
-    local newText = display.newText(thisGroup,"Friends list",100,20,native.systemFontBold,40)
+    local newText = display.newText(thisGroup,tostring(#friends),100,20,native.systemFontBold,40)
     local paragraphs = {}
     local paragraph
 
