@@ -28,11 +28,7 @@ local function loadUserData()
       local fileHandle, errorString = io.open(dataPath,"r")
       local contents = fileHandle:read( "*a" )
       local decoded, pos, msg = json.decode( contents )
-<<<<<<< HEAD
-      --gameSettings = loadsave.loadTable("data.json")
-=======
-      -- gameSettings = loadsave.loadTable("data.json")
->>>>>>> origin/master
+
       gameSettings = decoded
       composer.setVariable( "gameSettings", gameSettings )
       language = gameSettings.language
@@ -96,10 +92,7 @@ local function loadUserData()
     local contents = fileHandle:read( "*a" )
     local decoded, pos, msg = json.decode( contents )
       strings = decoded
-<<<<<<< HEAD
-      --strings = loadsave.loadTable("strings.json")
-=======
->>>>>>> origin/master
+
       composer.setVariable( "strings", strings )
       io.close( fileHandle )
       

@@ -82,7 +82,6 @@ local function drawWelcomeScreen()
 
     composer.gameNetwork.request( "loadFriends", { listener=requestLoadFriendsCallback } )
     
-<<<<<<< HEAD
 end
 
 local function requestLoadLocalPlayerCallback (event)
@@ -100,22 +99,16 @@ local function requestCallback ( event )
     else
         native.showAlert("You are not connected","!",{"OK"})
     end
-=======
-   
->>>>>>> origin/master
+
 end
 
 
 local function initCallback( event )
     if not event.isError then
-<<<<<<< HEAD
+
         composer.gameNetwork.request( "login",
           {
-=======
-       
-        gameNetwork.request( "login",
-        {
->>>>>>> origin/master
+
             userInitiated = true,
             listener = requestCallback
         }
