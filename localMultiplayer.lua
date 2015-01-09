@@ -32,6 +32,11 @@ local colorIndex = 1
 local stones = {}
 local totalStones = {}
 local gameOver = false
+local arraySavingStates = {}
+local counterForArray = 1
+local numbersOfTurn = 1
+local dataToLoadFromGameOver = {}
+local whichTurn = 0
 
 local function onKeyEvent(event)
     if (event.keyName == "back") then
@@ -73,6 +78,8 @@ local function soundFinished(event)
     end
 end
 
+
+
 local function saveState()
     -- body
     local contents
@@ -90,7 +97,13 @@ local function saveState()
     savedData.totalStones1 = totalStones[1]
     savedData.totalStones2 = totalStones[2]
     contents = json.encode(savedData)
-
+    -- arraySavingStates[#arraySavingStates+1] = contents
+    
+    -- print("printing array")
+    -- for k, v in pairs( arraySavingStates ) do
+    -- print(k, v)
+    -- end
+   
     fileHandle:write(contents)
     io.close(fileHandle)
 end
@@ -127,6 +140,7 @@ local function handleBackBtn(event)
     -- body
     if (event.phase == "ended") then
         saveState() -- saving game state for 9 kumalak
+
         local options =
         {
             isModal = true,
@@ -386,6 +400,38 @@ local function isTuzdyk(lunkaId)
     return (lunkaId==tuzdyk1 or tuzdyk2==lunkaId)
 end
 
+------------------Yesa
+local function saveTurnsContainer()
+    local contents
+    local savedData = {}
+    whichTurn = whichTurn + 1
+    print("Saving turns on game"..#arraySavingStates+1  )
+    -- fileHandle = io.open( saveGameFilePath,"w" )
+    for i =1,18 do
+        savedData[i]=counter[i].text
+    end
+    savedData.player1 = counter.player1.text
+    savedData.player2 = counter.player2.text
+    savedData.tuzdyk1 = tuzdyk1
+    savedData.tuzdyk2 = tuzdyk2
+    savedData.p1turn = p1turn
+    savedData.totalStones1 = totalStones[1]
+    savedData.totalStones2 = totalStones[2]
+    contents = json.encode(savedData)
+    --arraySavingStates[#arraySavingStates+1] = contents
+
+    arraySavingStates[whichTurn] = contents
+    print("which turn on increment:"..whichTurn)
+    
+    
+    
+    print("printing array")
+    for k, v in pairs( arraySavingStates ) do
+    print(k, v)
+    end
+end
+--------------------------------
+
 local function makeTurn(lunkaId)
     local startingPlayer = 1
     local opposingPlayer = 2
@@ -401,9 +447,10 @@ local function makeTurn(lunkaId)
     end
 
    
-    -----------
-    -----------
-    --
+    ----------- setting counter turn back to 1  
+    numbersOfTurn = 1
+
+    
 
     if totalStones[startingPlayer] == 0 then 
         --print("got here!")
@@ -616,6 +663,12 @@ local function makeTurn(lunkaId)
 
         composer.showOverlay("gameOver", options)
     end
+
+------------------------- saving turns of array
+saveTurnsContainer()
+
+--numbersOfTurn = 1
+
 end
 
 local function lunkaClick(event)
@@ -671,7 +724,6 @@ local function drawBoard(skin, group)
         lunka[i].y = (lunkaWidth + 10)*i +100
         lunka[i].id= i
         group:insert(lunka[i])
-
         counter[i] = display.newText("0", 10, (lunkaWidth + 10)*i + 100, 
             native.systemFontBold, 30)
         counter[i].x = 20
@@ -841,6 +893,103 @@ local function loadGame()
     return savedData
 end
 
+
+
+---------------------------------------- Yesa
+
+local function preDecrement_x() 
+    whichTurn = whichTurn - 1; 
+end
+
+function scene:goBack()
+    local contents
+    local savedData = {}
+    --counter = {}
+    -- fileHandle, errorString  = io.open( saveGameFilePath,"r" )
+    -- if fileHandle then
+   
+    
+    --local contents = arraySavingStates[whichTurn]
+
+   -- index of array must not be 0, it must be 1 or more
+
+    if (whichTurn > 1) then
+       
+        preDecrement_x()
+        --whichTurn = whichTurn - 1
+        print("which turn on decrement:".. whichTurn)
+        local contents = arraySavingStates[whichTurn]
+        
+    -- for k, v in pairs( contents ) do
+    -- print(k, v)
+    -- end
+
+        local decoded, pos, msg = json.decode( contents )
+        savedData = decoded
+        dataToLoadFromGameOver = savedData
+         
+        -- savedData = contents
+        -- dataToLoadFromGameOver = contents
+        
+        
+        
+        for i =1, 18 do
+            counter[i].text=decoded[tostring(i)]
+            --print("loading saved data lunka "..i.." = "..tostring(decoded[tostring(i)]))
+        end
+        counter.player1.text = savedData["player1"]
+        counter.player2.text = savedData["player2"]
+        tuzdyk1 = savedData["tuzdyk1"]
+        if tuzdyk1~="0" then
+            thisIsSceneGroup:remove(lunka[tuzdyk1])
+            lunka[tuzdyk1] = returnImage("tuzdyk.png")
+                    
+                    
+                        yL = (lunkaWidth+10)*(18-tuzdyk1+1) +100
+                        xL = display.contentWidth - lunkaHeight
+                    
+
+                    lunka[tuzdyk1].y = yL
+                    lunka[tuzdyk1].x = xL
+
+                    thisIsSceneGroup:insert(lunka[tuzdyk1])
+
+        end    
+        tuzdyk2 = savedData["tuzdyk2"]
+        if tuzdyk2~="0" then
+            lunka[tuzdyk2] = nil
+                    lunka[tuzdyk2] = returnImage("tuzdyk.png")
+
+                    --print("Setting tuzdyk image!")
+                    local yL = (lunkaWidth+10)*tuzdyk2+100
+                    local xL = lunkaHeight
+                    
+
+                    lunka[tuzdyk2].y = yL
+                    lunka[tuzdyk2].x = xL
+
+                    thisIsSceneGroup:insert(lunka[tuzdyk2])
+        end
+        p1turn = savedData["p1turn"] 
+        totalStones[1]=savedData["totalStones1"]
+        totalStones[2]=savedData["totalStones2"]
+
+        ------------ incrementing numbersofturn back
+        numbersOfTurn = numbersOfTurn + 1
+
+       
+    
+    else 
+        dataToLoadFromGameOver = initNewGame()
+        return
+    end
+
+end
+
+
+
+----------------------------------------------
+
 local function initBoard(savedData)
     local currentStones = 0
     local lastUsedStone = 0
@@ -851,6 +1000,13 @@ local function initBoard(savedData)
     totalStones[2]=0
     data = savedData
     p1turn = data["p1turn"]
+
+    -- print("Printing saved data from initBoard func")
+
+    --     for k, v in pairs( data ) do
+    --         printprint(k, v)
+    --     end
+
     if p1turn then
         otsvetit(1)
         podsvetit(2)
@@ -864,6 +1020,7 @@ local function initBoard(savedData)
         --print(tostring(data[tostring(i)]))
         counter[i].text = tostring(data[tostring(i)])
         currentStones = tostring(data[tostring(i)])+0
+
         if i>9 then 
             playerIndex = 2 
         end
@@ -905,6 +1062,82 @@ local function initBoard(savedData)
     --print("Player 2 has "..totalStones[2].." stones")  
 end
 
+
+-------Yesa
+local function loadGameFromVar(array)
+    -- body
+
+local contents
+    local savedData = {}
+    --counter = {}
+    print("Loading game state from array")
+    
+        
+        savedData = array
+        --[[
+        print("Printing saved data:")
+
+        for k, v in pairs( savedData ) do
+            print(k, v)
+        end
+        --]]
+        for i =1, 18 do
+            counter[i].text=savedData[tostring(i)]
+            --print("loading saved data lunka "..i.." = "..tostring(decoded[tostring(i)]))
+        end
+        counter.player1.text = savedData["player1"]
+        counter.player2.text = savedData["player2"]
+        tuzdyk1 = savedData["tuzdyk1"]
+        if tuzdyk1~="0" then
+            thisIsSceneGroup:remove(lunka[tuzdyk1])
+            lunka[tuzdyk1] = returnImage("tuzdyk.png")
+                    
+                    
+                        yL = (lunkaWidth+10)*(18-tuzdyk1+1) +100
+                        xL = display.contentWidth - lunkaHeight
+                    
+
+                    lunka[tuzdyk1].y = yL
+                    lunka[tuzdyk1].x = xL
+
+                    thisIsSceneGroup:insert(lunka[tuzdyk1])
+
+        end    
+        tuzdyk2 = savedData["tuzdyk2"]
+        if tuzdyk2~="0" then
+            lunka[tuzdyk2] = nil
+                    lunka[tuzdyk2] = returnImage("tuzdyk.png")
+
+                    --print("Setting tuzdyk image!")
+                    local yL = (lunkaWidth+10)*tuzdyk2+100
+                    local xL = lunkaHeight
+                    
+
+                    lunka[tuzdyk2].y = yL
+                    lunka[tuzdyk2].x = xL
+
+                    thisIsSceneGroup:insert(lunka[tuzdyk2])
+        end
+        p1turn = savedData["p1turn"] 
+        totalStones[1]=savedData["totalStones1"]
+        totalStones[2]=savedData["totalStones2"]
+    
+end
+
+
+--cleaning group fomr other lua
+
+function scene:cleanBoardGameAndLoadNewBoard()
+    local sceneGroup = self.view
+    local skin = gameSettings.skin
+    
+    cleanBoard(sceneGroup)
+    drawBoard(skin, sceneGroup)
+    initBoard(dataToLoadFromGameOver)
+    
+    -- body
+end
+
 -- "scene:create()"
 function scene:create( event )
 
@@ -924,6 +1157,8 @@ function scene:show( event )
     skin = gameSettings.skin
     isNewGame = composer.getVariable("newGame")
 
+    print("showing multi lua")
+
     if ( phase == "will" ) then
         --print("Drawing board with skin = "..skin)
         drawBoard(skin, sceneGroup)
@@ -935,6 +1170,7 @@ function scene:show( event )
             print("starting new game")
             data = initNewGame()
         end
+
         initBoard(data)
 
         -- Called when the scene is still off screen (but is about to come on screen).
@@ -946,6 +1182,8 @@ function scene:show( event )
     end
 end
 
+
+
 -- "scene:hide()"
 
 function scene:hide( event )
@@ -954,8 +1192,10 @@ function scene:hide( event )
     local phase = event.phase
 
     if ( phase == "will" ) then
+        print("multiLua var is set")
         saveState()
         cleanBoard(sceneGroup)
+        
         -- Called when the scene is on screen (but is about to go off screen).
         -- Insert code here to "pause" the scene.
         -- Example: stop timers, stop animation, stop audio, etc.

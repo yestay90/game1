@@ -18,41 +18,27 @@ local int = 1
 
 local function requestCallback ( event )
     
-    if event.isError then
-        native.showAlert( "Login failed" ,"Login failed" ,{ "OK" })
-    else
-        
-        if (event.data ~= nil) then 
-            table = event.data
-        else 
-            native.showAlert("data table is nil", "data table is nil", {"OK"} )
-        end
-        for k, v in pairs( table ) do
-            msg = k.. v
-            texts[i] = display.newText( thisGroup, msg, 
-                100, 100*int, native.systemFont, 50 )
-            int = int + 1
-            texts[i].x = 100
-            texts[i].y = 100*int
-            texts[i]:setTextColor( 1, 1, 1 )
-        end
-    end
+   
 end
 
 
 local function initCallback( event )
     if not event.isError then
-        playerID = event.data.playerID
-        alias = event.data.alias
+       
         gameNetwork.request( "login",
-          {
+        {
             userInitiated = true,
             listener = requestCallback
-          }
+        }
         )
+        native.showAlert( "Success!", "", { "OK" } )
     else
         native.showAlert( "Failed!", event.errorMessage, { "OK" } )
     end
+end
+
+local function onSystemEvent( event )
+    -- body
 end
 
 --------------------------------------------
