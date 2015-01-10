@@ -35,7 +35,7 @@ local function loadUserData()
       io.close( fileHandle )
     end
   	
-  	-- load strings
+  	--load strings
     
 	local fileHandle, errorString = io.open(stringsPath,"r")
   
@@ -51,7 +51,7 @@ local function loadUserData()
     
    local fileHandle = io.open(stringsPath, "w" )
    fileHandle:write([[{
-      "mainMenu":["networkGame","gameMenu","options","rules"],
+      "mainMenu":["networkMenu","gameMenu","options","rules"],
       "enMenu":["Play online","Local game","Options","Game rules"],
       "kzMenu":["Интернет арқылы ойнау","Локалды ойнау","Параметрлер","Ойын шарттары"],
       "ruMenu":["Играть по сети","Играть локально","Настройки","Правила игры"],
@@ -83,7 +83,11 @@ local function loadUserData()
       "enPause":["Pause","Options", "Move back"],
       "ruGameOver":["Игра окончена!", "игрок победил!","Нет хода!","Очков","Новый рекорд!"],
       "kzGameOver":["Ойын аяқталды!", "-ойыншы ұтты!","Атсыз қалу!","Ұпай","Ең үлкен ұпай!"],
-      "enGameOver":["Game over!", "Player win","No more moves!","Points","Personal highscore!"]
+      "enGameOver":["Game over!", "Player win","No more moves!","Points","Personal highscore!"],
+      "menuNetwork":["achievements","create","join","leaderboards"],
+      "ruNetwork":["Достижения","Создать игру","Присоединиться","Список лучших игроков"],
+      "kzNetwork":["Жетістіктер","Ойынға шақыру","Ойынға қосылу","Үздік ойыншылар тізімі"],
+      "enNetwork":["Achievements","Create game","Join game","Leaderboard"]
     }]]
     )
     
