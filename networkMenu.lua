@@ -15,10 +15,31 @@ local alias
 composer.gameNetwork = require( "gameNetwork" )
 local strings = composer.getVariable( "strings" )
 
+local function onKeyEvent(event)
+  if event.keyName == "back" then
+    native.requestExit()
+  end
+  return true
+end 
+
+local function beginGame(playerId, roomID)
+  Runtime:removeEventListener( "key", onKeyEvent );
+  local options =
+  {
+    effect = "fade",
+    time = 400
+  }
+
+  composer.otherPlayerId = playerId
+  composer.matchId = roomID
+  native.showAlert("Network","Starting game with "..composer.otherPlayerId,{"OK"})
+  --composer.gotoScene( "game-scene", options )
+end
+
 local function waitingRoomListener(waitingRoomEvent)
     if waitingRoomEvent.data.phase == "start" then
         -- We only need the first player because its a 2 player game
-        native.showAlert("Staring the game! with "..waitingRoomEvent.data[2])
+        beginGame(waitingRoomEvent.data[1], waitingRoomEvent.data.roomID)
     end
 end
 
@@ -63,7 +84,20 @@ local function menuItemTap (event)
 
     -- JOINING A GAME
     elseif event.target.id=="join" then
-      native.showAlert("Network","joining game",{"OK"})
+      local function invitationsListener(invitationsEvent)
+        -- This will let the user join a room 
+        composer.gameNetwork.request("joinRoom",
+        {
+          roomID = invitationsEvent.data.roomID,
+          listener = roomListener
+        })
+      end
+
+      -- This will show the invitations screen which shows a list of all the invitations the user has
+      composer.gameNetwork.show("invitations", {
+        listener = invitationsListener
+      })
+      composer.isGuest = 1
 
     -- SHOWING LEADERBOARDS
     elseif event.target.id=="leaderboards" then
@@ -158,11 +192,35 @@ local function initCallback(event)
     end
 end
 
+local function receivedInvitationListener(event)
+        native.showAlert("Invitation Received", "You received an invitation from " .. event.data.alias, {"OK"})
+end
+
 function scene:show( event )
     local sceneGroup = self.view
     local phase = event.phase
 
     if phase == "will" then
+
+      
+      
+      composer.gameNetwork.init("google",initCallback)
+
+      if composer.gameNetwork.request("isConnected") then
+    -- This will call the listener whenever the user receives an invitation
+        composer.gameNetwork.request("setInvitationReceivedListener", 
+        {
+         listener = receivedInvitationListener,
+        })
+
+        composer.gameNetwork.request("setRoomListener",
+        {
+          listener = roomListener,
+        })
+      end
+
+      Runtime:addEventListener( "key", onKeyEvent );
+
       language = gameSettings.language
       menuItems = strings.menuNetwork
       menuItemTexts = strings[language.."Network"]
@@ -170,7 +228,7 @@ function scene:show( event )
         menuItemIds[i].text = menuItemTexts[i]
       end
     elseif phase == "did" then
-      composer.gameNetwork.init("google",initCallback)
+      
     end 
 end
 
