@@ -22,55 +22,35 @@ local function handleBackBtn(event)
     end
 end
 
-local function requestLoadFriendsCallback(event)
-    friends = event.data
-    local newText = display.newText(thisGroup,tostring(#friends),100,20,native.systemFontBold,40)
-    local paragraphs = {}
-    local paragraph
+local function requestLoadPlayersCallback(event)
+    composer.otherPlayerAlias = event.data.alias
+end
 
-    scrollView = widget.newScrollView
+local function beginGame(playerId, roomID)
+    Runtime:removeEventListener( "key", onKeyEvent );
+    local options =
     {
-        top = 140,
-        left = 10,
-        width = display.contentWidth-0,
-        height = display.contentHeight-300,
-        scrollWidth = display.contentWidth-50,
-        scrollHeight =10000,
-        hideBackground = true
+        effect = "fade",
+        time = 400
     }
-    local options = {
-        text = "",
-        left = 10,
-        width = display.contentWidth-50,
-        font = native.systemFontBold,
-        fontSize = 40,
-        align = "left"
-    }
-    local yOffset = 10
+    gameNetwork.request( "loadPlayers",
+    {
+        playerIDs =
+        {
+            playerId
+        },
+        listener = requestLoadPlayersCallback
+    })
+    composer.otherPlayerId = playerId
+    composer.matchId = roomID
 
-    if #friends>0 then
-        for i=1,#friends do
-            paragraph = friends[i].alias
-            options.text = paragraph.."\n"
-            paragraphs[#paragraphs+1] = display.newText( options )
-            paragraphs[#paragraphs].anchorX = 0
-            paragraphs[#paragraphs].anchorY = 0
-            paragraphs[#paragraphs].x = 10
-            paragraphs[#paragraphs].y = yOffset
-            paragraphs[#paragraphs]:setFillColor( 1,1,1 )
-            scrollView:insert( paragraphs[#paragraphs] )
-            yOffset = yOffset + paragraphs[#paragraphs].height
-        end
-        
-    end
-    thisGroup:insert(scrollView)
+    composer.gotoScene( "multiplayer", options )
 end
 
 local function waitingRoomListener(waitingRoomEvent)
     if waitingRoomEvent.data.phase == "start" then
         -- We only need the first player because its a 2 player game
-        --beginGame(waitingRoomEvent.data[1], waitingRoomEvent.data.roomID)
-        native.showAlert("Staring the game! with "..waitingRoomEvent.data[1])
+        beginGame(waitingRoomEvent.data[1], waitingRoomEvent.data.roomID) 
     end
 end
 

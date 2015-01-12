@@ -22,18 +22,29 @@ local function onKeyEvent(event)
   return true
 end 
 
-local function beginGame(playerId, roomID)
-  Runtime:removeEventListener( "key", onKeyEvent );
-  local options =
-  {
-    effect = "fade",
-    time = 400
-  }
+local function requestLoadPlayersCallback(event)
+    composer.setVariable("otherPlayerAlias" , event.data[1].alias)
+end
 
-  composer.otherPlayerId = playerId
-  composer.matchId = roomID
-  native.showAlert("Network","Starting game with "..composer.otherPlayerId,{"OK"})
-  --composer.gotoScene( "game-scene", options )
+local function beginGame(playerId2, roomID)   
+    Runtime:removeEventListener( "key", onKeyEvent );
+    local options =
+    {
+        effect = "fade",
+        time = 400
+    }
+    composer.gameNetwork.request( "loadPlayers",
+    {
+        playerIDs =
+        {
+            playerId2
+        },
+        listener = requestLoadPlayersCallback
+    })
+    composer.setVariable("otherPlayerId", playerId2)
+    composer.setVariable("matchId", roomID)
+    --native.showAlert("network","success",{"OK"})
+    composer.gotoScene( "multiplayer", options )
 end
 
 local function waitingRoomListener(waitingRoomEvent)
@@ -102,6 +113,8 @@ local function menuItemTap (event)
     -- SHOWING LEADERBOARDS
     elseif event.target.id=="leaderboards" then
       composer.gameNetwork.show("leaderboards")
+    elseif event.target.id=="menu" then
+      composer.gotoScene("menu")
     end
   else
     previousMenuItem:setFillColor( 1 )
@@ -164,8 +177,8 @@ local function requestLoadLocalPlayerCallback (event)
     playerID = event.data.playerID
     alias = event.data.alias
 
-    composer.playerID = playerID
-    composer.alias = alias
+    composer.setVariable("playerID", playerID)
+    composer.setVariable("alias", alias)
     --drawWelcomeScreen()
 end
 

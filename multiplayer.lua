@@ -1,4 +1,3 @@
------------------------------ VS ANDROID
 local composer = require( "composer" )
 local scene = composer.newScene()
 local widget = require("widget")
@@ -13,7 +12,6 @@ local backgroundMusic = audio.loadStream( "background_konyl.wav" ) -- background
 
 local gameSettings = composer.getVariable("gameSettings")
 local skin = gameSettings.skin
-local difficulty = gameSettings.difficulty
 local lunka = {}
 local LK = {}
 local p1turn = true
@@ -43,7 +41,12 @@ local dataToLoadFromGameOver = {}
 local whichTurn = 0
 local gameLoaded = false
 
-local makeAndroidTurn
+composer.gameNetwork = require ("gameNetwork")
+local otherPlayerID = composer.getVariable("otherPlayerID")
+local roomID = composer.getVariable("matchId")
+local playerID = composer.getVariable("playerID")
+local alias = composer.getVariable("alias")
+local otherPlayerAlias = composer.getVariable("otherPlayerAlias")
 
 local function onKeyEvent(event)
     if (event.keyName == "back") then
@@ -238,10 +241,6 @@ local function moveStone(stoneId,origin,dest)--OK
     end
 end
 
-local function listenerTimer( event )
-    makeAndroidTurn()
-end
-
 local function moveStoneToKazan(tekStone,k)--OK
     local currentKazan
     local kazanX, kazanY, rowY, rowX, kazanPos
@@ -399,77 +398,6 @@ local function saveTurnsContainer()--OK
     arraySavingStates[whichTurn] = contents
     saveState()
 end
----------------
-local function evaluateMove(lunkaId)
-    local score = 1000
-    local aiLunka = lunkaId+9
-    local currentStones = counter[aiLunka].text + 0
-    local lastLunkaId = 0
-    local currentLunka = aiLunka
-    local remainder = currentStones
-    local passedTuzdyk = 0
-    print("Evaluating move for "..aiLunka.." his move "..lunkaId)
-    print("Current stones = "..currentStones)
-
-    if currentStones == 0 then
-        print("Quitting this thing")
-        score = 1000
-    else
-
-    repeat
-        if remainder>=18 then
-            --print("doing a loop")
-            remainder = remainder - 18
-            if tostring(tuzdyk2)~="0" then
-                passedTuzdyk = passedTuzdyk + 1
-                --print("passing tuzdyk")
-            end
-        end
-    until remainder < 18
-
-    if tostring(tuzdyk2)~="0" then
-        --print("tuzdyk is "..tuzdyk2)
-    else
-        --print("there is no AI tuzdyk")
-    end
-
-    lastLunkaId = currentLunka
-
-    --12 aiLunka                                       aiLunka=12
-    --remainder 13
-    --12,13,14,15,16,17,18,1,2,3,  4,  5,  6
-    -- 1 2  3  4  5  6  7  8 9 10 11  12  13           i = 1..13 - 1
-
-    for i=1,remainder do
-        currentLunka = aiLunka+i-1
-        
-        if currentLunka>18 then 
-            currentLunka=currentLunka - 18
-        end
-        --print("passing lunka #"..currentLunka)
-        if currentLunka==tostring(tuzdyk2) then
-            --print("adding 1 because current lunka is "..currentLunka.." and tuzdyk2 is "..tuzdyk2)
-            passedTuzdyk = passedTuzdyk + 1
-        end
-        lastLunkaId = currentLunka
-    end
-    score = passedTuzdyk
-    --print("last lunka for this move is "..lastLunkaId)
-    if lastLunkaId<10 then
-        --print("i'm on his side and can steal stones")
-        if not isEven(lastLunkaId) then
-
-            score = score + counter[lastLunkaId].text + 1
-            --print("stealing stones and getting "..score)
-        end
-    end
-    end    
-    return score
-
-end
-
-
-----------------
 
 local function makeTurn(lunkaId)
     local startingPlayer = 1
@@ -665,44 +593,47 @@ local function makeTurn(lunkaId)
 
         composer.showOverlay("gameOver", options)
     end
-    saveTurnsContainer()
-    if not p1turn then
-        timer.performWithDelay( 1000, listenerTimer )
-        
-        print("your turn")
-    end
+saveTurnsContainer()
 end
 
----------AI moves
-makeAndroidTurn = function()
-    bestMove = 9
-    bestScore = 0
-    moveScore = 0
-    for i=1,9 do
-        print(" --TURN "..i.."--")
-        if counter[i+9].text~="0" then
-            moveScore = evaluateMove(i)
-            print("for move "..i.." i get score "..moveScore)
-            if moveScore>=bestScore then
-                --print("setting best move "..i)
-                bestScore = moveScore
-                bestMove = i
-            end
-        end
-    end
-    print("Making ANDROID turn")
-    print("best move for me is "..bestMove.." because i get best score = "..bestScore)
-    bestMove= bestMove + 9
-    makeTurn(bestMove)
+local function requestCallbackSendMessage(event)
 end
----------------------
 
 local function lunkaClick(event)
     local lunkaId = event.target.id
-
+    --local msg = otherPlayerAlias.." vs "..playerID
+    --native.showAlert("network success", msg, {"OK"})
     if event.phase == "ended" then
         if (lunkaId<10) and (p1turn) then
             makeTurn(lunkaId)
+            composer.gameNetwork.request( "sendMessage",
+            {
+                roomID = composer.getVariable("roomID"),
+                playerIDs =
+                {
+                    composer.getVariable("playerID"),
+                    composer.getVariable("otherPlayerID")
+                },
+                message = lunkaId,
+                reliable = true,
+                listener = requestCallbackSendMessage
+            }
+            )
+        elseif (lunkaId>9) and (not p1turn) then
+            makeTurn(lunkaId)
+            composer.gameNetwork.request( "sendMessage",
+            {
+                roomID = composer.getVariable("roomID"),
+                playerIDs =
+                {
+                    composer.getVariable("playerID"),
+                    composer.getVariable("otherPlayerID")
+                },
+                message = lunkaId,
+                reliable = true,
+                listener = requestCallbackSendMessage
+            }
+            )
         end
     end
 end
@@ -839,9 +770,7 @@ local function initNewGame()
     data["p1turn"] = p1turn
     data["totalStones1"] = "81"
     data["totalStones2"] = "81"
-    if not p1turn then
-        makeAndroidTurn()
-    end
+
     return data
 end
 
@@ -962,69 +891,10 @@ function scene:goBack()
     else 
         if not gameLoaded then
             dataToLoadFromGameOver = initNewGame()
-            if not p1turn then makeAndroidTurn() end
         end
         return 
     end
-    if (whichTurn > 1) and (not gameLoaded) then
-        preDecrement_x()
-        gameLoaded = false
-        local contents = arraySavingStates[whichTurn]
-        local decoded, pos, msg = json.decode( contents )
-        savedData = decoded
-        dataToLoadFromGameOver = savedData
-        
-        for i =1, 18 do
-            counter[i].text=decoded[tostring(i)]
-        end
-        counter.player1.text = savedData["player1"]
-        counter.player2.text = savedData["player2"]
-        tuzdyk1 = savedData["tuzdyk1"]
-        if tuzdyk1~="0" then
-            thisIsSceneGroup:remove(lunka[tuzdyk1])
-            lunka[tuzdyk1] = returnImage("tuzdyk.png")
-                    
-                    
-                        yL = (lunkaWidth+10)*(18-tuzdyk1+1) +100
-                        xL = display.contentWidth - lunkaHeight
-                    
 
-                    lunka[tuzdyk1].y = yL
-                    lunka[tuzdyk1].x = xL
-
-                    thisIsSceneGroup:insert(lunka[tuzdyk1])
-
-        end    
-        tuzdyk2 = savedData["tuzdyk2"]
-        if tuzdyk2~="0" then
-            lunka[tuzdyk2] = nil
-                    lunka[tuzdyk2] = returnImage("tuzdyk.png")
-
-                    --print("Setting tuzdyk image!")
-                    local yL = (lunkaWidth+10)*tuzdyk2+100
-                    local xL = lunkaHeight
-                    
-
-                    lunka[tuzdyk2].y = yL
-                    lunka[tuzdyk2].x = xL
-
-                    thisIsSceneGroup:insert(lunka[tuzdyk2])
-        end
-        p1turn = savedData["p1turn"] 
-        totalStones[1]=savedData["totalStones1"]
-        totalStones[2]=savedData["totalStones2"]
-
-
-       
-    
-    else 
-        if not gameLoaded then
-            dataToLoadFromGameOver = initNewGame()
-            if not p1turn then makeAndroidTurn() end
-        end
-        return 
-    end
-    if not p1turn then makeAndroidTurn() end
 end
 
 
@@ -1139,11 +1009,18 @@ function scene:create( event )
 end
 
 -- "scene:show()"
+local function requestCallbackMessageReceived( event )
+            local id = event.data.participantID
+            local msg = event.data.message 
+            native.showAlert(tostring(id),tostring(msg),{"OK"})
+end
+
 function scene:show( event )
 
     local sceneGroup = self.view
     local phase = event.phase
     local data = {}
+    local msg = otherPlayerAlias.." vs "..playerID
     
     gameSettings = composer.getVariable("gameSettings")
     skin = gameSettings.skin
@@ -1158,11 +1035,19 @@ function scene:show( event )
             data = initNewGame()
         end
         initBoard(data)
-        if not p1turn then
-            makeAndroidTurn()
-        end
+
+
+        
+
+        composer.gameNetwork.request( "setMessageReceivedListener",
+            {
+                listener = requestCallbackMessageReceived
+            }
+        )
+        --native.showAlert("network success", msg, {"OK"})
     elseif ( phase == "did" ) then
-         Runtime:addEventListener( "key", onKeyEvent )
+        
+        Runtime:addEventListener( "key", onKeyEvent )
     end
 end
 

@@ -1,13 +1,16 @@
 local composer = require( "composer" )
 local widget = require("widget")
 local backBtn
+local clicked = false
 
 local scene = composer.newScene(  )
 
 local function logoClick (event)
-    if event.phase == "ended" then
-        composer.gotoScene("menu")
-    end
+        if not clicked then
+            clicked = true
+            composer.gotoScene("menu")
+        end
+    
 end
 
 function scene:create( event )

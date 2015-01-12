@@ -3,7 +3,6 @@ local composer 		= require "composer"
 local json 			= require "json"
 local stringsPath 	= system.pathForFile( "strings.json",system.DocumentsDirectory )
 local dataPath 		= system.pathForFile( "data.json", system.DocumentsDirectory )
-local loadsave		= require("loadsave")
 local gameSettings
 local strings
 
@@ -14,7 +13,6 @@ local function loadUserData()
     if fileHandle then
 	    local contents = fileHandle:read( "*a" )
 	    local decoded, pos, msg = json.decode( contents )
-	    --gameSettings = loadsave.loadTable("data.json")
       gameSettings = decoded
 	    composer.setVariable( "gameSettings", gameSettings )
 	    language = gameSettings.language
@@ -23,7 +21,7 @@ local function loadUserData()
   	else
       
       fileHandle = io.open( dataPath,"w" )
-      fileHandle:write( [[{"difficulty":"easy","language":"ru","highScore":"0","playerName":"Talgat","skin":"wood"}]] )
+      fileHandle:write( [[{"difficulty":"easy","language":"ru","skin":"wood"}]] )
   	  io.close( fileHandle )
       local fileHandle, errorString = io.open(dataPath,"r")
       local contents = fileHandle:read( "*a" )
@@ -43,10 +41,8 @@ local function loadUserData()
     	local contents = fileHandle:read( "*a" )
       local decoded, pos, msg = json.decode( contents )
       strings = decoded
-    	--strings = loadsave.loadTable("strings.json")
     	composer.setVariable( "strings", strings )
       io.close( fileHandle )
-      
 	else
     
    local fileHandle = io.open(stringsPath, "w" )
@@ -56,9 +52,9 @@ local function loadUserData()
       "kzMenu":["Интернет арқылы ойнау","Локалды ойнау","Параметрлер","Ойын шарттары"],
       "ruMenu":["Играть по сети","Играть локально","Настройки","Правила игры"],
       "gameMenu":["newGame","loadGame","localMultiplayer","menu"],
-      "ruGameMenu":["Новая игра","Загрузить игру","Играть вдвоем", "<- Вернуться"],
-      "enGameMenu":["New game","Load game","Two player game", "<- Go back"],
-      "kzGameMenu":["Жаңа ойын","Ойынды жүктеу","Екі адамды ойын", "<- Артқа"],
+      "ruGameMenu":["Новая игра","Продолжить игру","Играть вдвоем", "<- Вернуться"],
+      "enGameMenu":["New game","Continue game","Two player game", "<- Go back"],
+      "kzGameMenu":["Жаңа ойын","Ойынды жалғастыру","Екі адамды ойын", "<- Артқа"],
       "optionsMenu":["language","skin", "level","menu"],
       "enOptions":["Language","Skin","Level of difficulty","<- Go back"],
       "ruOptions":["Язык","Оформление", "Уровень сложности","<- Вернуться"],
@@ -84,10 +80,10 @@ local function loadUserData()
       "ruGameOver":["Игра окончена!", "игрок победил!","Нет хода!","Очков","Новый рекорд!"],
       "kzGameOver":["Ойын аяқталды!", "-ойыншы ұтты!","Атсыз қалу!","Ұпай","Ең үлкен ұпай!"],
       "enGameOver":["Game over!", "Player win","No more moves!","Points","Personal highscore!"],
-      "menuNetwork":["achievements","create","join","leaderboards"],
-      "ruNetwork":["Достижения","Создать игру","Присоединиться","Список лучших игроков"],
-      "kzNetwork":["Жетістіктер","Ойынға шақыру","Ойынға қосылу","Үздік ойыншылар тізімі"],
-      "enNetwork":["Achievements","Create game","Join game","Leaderboard"]
+      "menuNetwork":["achievements","create","join","leaderboards","menu"],
+      "ruNetwork":["Достижения","Создать игру","Присоединиться","Список лучших игроков","<- Вернуться"],
+      "kzNetwork":["Жетістіктер","Ойынға шақыру","Ойынға қосылу","Үздік ойыншылар тізімі","<- Артқа"],
+      "enNetwork":["Achievements","Create game","Join game","Leaderboard","<- Go back"]
     }]]
     )
     

@@ -33,7 +33,6 @@ local function menuItemTap (event)
     gameSettings.difficulty = selectedMenuItem
     composer.setVariable( "gameSettings", gameSettings )
     saveUserData()
-    --native.showAlert( "TogyzKumalak", "You have to restart the game to see changes", { "OK" }, composer.gotoScene( "menu" ) )
     composer.gotoScene( "menu" )
 	else
 		previousMenuItem:setFillColor( 1 )
