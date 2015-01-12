@@ -23,7 +23,7 @@ local function onKeyEvent(event)
 end 
 
 local function requestLoadPlayersCallback(event)
-    composer.setVariable("otherPlayerAlias" , event.data[1].alias)
+    composer.otherPlayerAlias=event.data[1].alias
 end
 
 local function beginGame(playerId2, roomID)   
@@ -41,8 +41,8 @@ local function beginGame(playerId2, roomID)
         },
         listener = requestLoadPlayersCallback
     })
-    composer.setVariable("otherPlayerId", playerId2)
-    composer.setVariable("matchId", roomID)
+    composer.otherPlayerId = playerId2
+    composer.matchId = roomID
     --native.showAlert("network","success",{"OK"})
     composer.gotoScene( "multiplayer", options )
 end
@@ -177,8 +177,8 @@ local function requestLoadLocalPlayerCallback (event)
     playerID = event.data.playerID
     alias = event.data.alias
 
-    composer.setVariable("playerID", playerID)
-    composer.setVariable("alias", alias)
+    composer.playerID=playerID
+    composer.alias=alias
     --drawWelcomeScreen()
 end
 
