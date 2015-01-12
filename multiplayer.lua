@@ -10,6 +10,9 @@ local scene = composer.newScene()
 composer.gameNetwork = require ("gameNetwork")
 local playerId = composer.playerID
 local alias = composer.alias
+local playerId2 = composer.otherPlayerId
+local roomId = composer.matchId
+local otherPlayerAlias
 -- -------------------------------------------------------------------------------
 
 
@@ -24,6 +27,14 @@ end
 
 
 -- "scene:show()"
+local function requestCallback(event)
+    if (event.data[1].alias ~= nil ) then
+        otherPlayerAlias = event.data[1].alias
+    else
+        otherPlayerAlias = "Not found"
+    end
+end
+
 function scene:show( event )
 
     local sceneGroup = self.view
@@ -33,10 +44,22 @@ function scene:show( event )
 
         -- Called when the scene is still off screen (but is about to come on screen).
     elseif ( phase == "did" ) then
-        if alias ~= nil then
-            native.showAlert("Network","Welcome to the game,"..alias.."!", {"OK"})
+        composer.gameNetwork.request( "loadPlayers",
+        {
+            playerIDs =
+            {
+                playerId2,
+                playerId
+            },
+            listener = requestCallback
+            }
+        )
+
+
+        if otherPlayerAlias ~= nil then
+            native.showAlert("Network","Welcome to the game,"..alias.."! You are playing against "..otherPlayerAlias.."!", {"OK"})
         else
-            native.showAlert("Network","Empty alias",{"OK"})
+            native.showAlert("Network","Welcome to the game,"..alias.."! You are playing against ID = "..playerId2.."!",{"OK"})
         end
         -- Called when the scene is now on screen.
         -- Insert code here to make the scene come alive.

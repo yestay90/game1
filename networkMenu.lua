@@ -22,9 +22,11 @@ local function onKeyEvent(event)
   return true
 end 
 
-local function requestLoadPlayersCallback(event)
-    composer.otherPlayerAlias=event.data[1].alias
-end
+-- local function requestLoadPlayersCallback(event)
+  
+--     composer.otherPlayerAlias=event.data[1].alias
+
+-- end
 
 local function beginGame(playerId2, roomID)   
     Runtime:removeEventListener( "key", onKeyEvent );
@@ -33,14 +35,14 @@ local function beginGame(playerId2, roomID)
         effect = "fade",
         time = 400
     }
-    composer.gameNetwork.request( "loadPlayers",
-    {
-        playerIDs =
-        {
-            playerId2
-        },
-        listener = requestLoadPlayersCallback
-    })
+    -- composer.gameNetwork.request( "loadPlayers",
+    -- {
+    --     playerIDs =
+    --     {
+    --         tostring(playerId2)
+    --     },
+    --     listener = requestLoadPlayersCallback
+    -- })
     composer.otherPlayerId = playerId2
     composer.matchId = roomID
     --native.showAlert("network","success",{"OK"})
