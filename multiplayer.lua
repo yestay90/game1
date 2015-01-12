@@ -1,4 +1,5 @@
 local composer = require( "composer" )
+composer.gameNetwork = require ("gameNetwork")
 local scene = composer.newScene()
 local widget = require("widget")
 local thisIsSceneGroup -- this is sceneGroup global in this lua
@@ -41,8 +42,8 @@ local dataToLoadFromGameOver = {}
 local whichTurn = 0
 local gameLoaded = false
 
-composer.gameNetwork = require ("gameNetwork")
-local otherPlayerID = composer.getVariable("otherPlayerID")
+
+local otherPlayerID = composer.getVariable("otherPlayerId")
 local roomID = composer.getVariable("matchId")
 local playerID = composer.getVariable("playerID")
 local alias = composer.getVariable("alias")
@@ -601,39 +602,39 @@ end
 
 local function lunkaClick(event)
     local lunkaId = event.target.id
-    --local msg = otherPlayerAlias.." vs "..playerID
-    --native.showAlert("network success", msg, {"OK"})
+    local msg = tostring(otherPlayerAlias).." vs "..tostring(playerID)
+    native.showAlert("network success", msg, {"OK"})
     if event.phase == "ended" then
         if (lunkaId<10) and (p1turn) then
             makeTurn(lunkaId)
-            composer.gameNetwork.request( "sendMessage",
-            {
-                roomID = composer.getVariable("roomID"),
-                playerIDs =
-                {
-                    composer.getVariable("playerID"),
-                    composer.getVariable("otherPlayerID")
-                },
-                message = lunkaId,
-                reliable = true,
-                listener = requestCallbackSendMessage
-            }
-            )
+            -- composer.gameNetwork.request( "sendMessage",
+            -- {
+            --     roomID = composer.getVariable("roomID"),
+            --     playerIDs =
+            --     {
+            --         composer.getVariable("playerID"),
+            --         composer.getVariable("otherPlayerID")
+            --     },
+            --     message = lunkaId,
+            --     reliable = true,
+            --     listener = requestCallbackSendMessage
+            -- }
+            -- )
         elseif (lunkaId>9) and (not p1turn) then
             makeTurn(lunkaId)
-            composer.gameNetwork.request( "sendMessage",
-            {
-                roomID = composer.getVariable("roomID"),
-                playerIDs =
-                {
-                    composer.getVariable("playerID"),
-                    composer.getVariable("otherPlayerID")
-                },
-                message = lunkaId,
-                reliable = true,
-                listener = requestCallbackSendMessage
-            }
-            )
+            -- composer.gameNetwork.request( "sendMessage",
+            -- {
+            --     roomID = composer.getVariable("roomID"),
+            --     playerIDs =
+            --     {
+            --         composer.getVariable("playerID"),
+            --         composer.getVariable("otherPlayerID")
+            --     },
+            --     message = lunkaId,
+            --     reliable = true,
+            --     listener = requestCallbackSendMessage
+            -- }
+            -- )
         end
     end
 end
@@ -1025,6 +1026,11 @@ function scene:show( event )
     gameSettings = composer.getVariable("gameSettings")
     skin = gameSettings.skin
     isNewGame = composer.getVariable("newGame")
+    otherPlayerID = composer.getVariable("otherPlayerID")
+    roomID = composer.getVariable("matchId")
+    playerID = composer.getVariable("playerID")
+    alias = composer.getVariable("alias")
+    otherPlayerAlias = composer.getVariable("otherPlayerAlias")
 
     if ( phase == "will" ) then
         drawBoard(skin, sceneGroup)
@@ -1039,11 +1045,11 @@ function scene:show( event )
 
         
 
-        composer.gameNetwork.request( "setMessageReceivedListener",
-            {
-                listener = requestCallbackMessageReceived
-            }
-        )
+        -- composer.gameNetwork.request( "setMessageReceivedListener",
+        --     {
+        --         listener = requestCallbackMessageReceived
+        --     }
+        -- )
         --native.showAlert("network success", msg, {"OK"})
     elseif ( phase == "did" ) then
         
