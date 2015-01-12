@@ -178,7 +178,12 @@ local function requestLoginCallback ( event )
 
 end
 
-local function initCallback(event)
+local function gameNetworkLoginCallback( event )
+   composer.gameNetwork.request( "loadLocalPlayer", { listener=requestLoadLocalPlayerCallback } )
+   return true
+end
+
+local function gpgsInitCallback(event)
   if not event.isError then
         composer.gameNetwork.request( "login",
           {
@@ -202,9 +207,15 @@ function scene:show( event )
 
     if phase == "will" then
 
+      if ( system.getInfo("platformName") == "Android" ) then
+        -- google game play services
+        composer.gameNetwork.init( "google", gpgsInitCallback )
+      else
+        -- apple game center
+        composer.gameNetwork.init( "gamecenter", gameNetworkLoginCallback )
+      end
       
-      
-      composer.gameNetwork.init("google",initCallback)
+      --composer.gameNetwork.init("google",initCallback)
 
       if composer.gameNetwork.request("isConnected") then
     -- This will call the listener whenever the user receives an invitation
